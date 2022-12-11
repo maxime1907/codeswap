@@ -24,7 +24,7 @@ def convert_content(
         return output
 
     chatbot = Chatbot(config["chatgpt"], conversation_id=None)
-    keyphrase = f"Convert the following code written in {source} to {destination} without any explanation and return only converted code in a code block:\n"
+    keyphrase = f"Convert the following code written in {source} to {destination} without any explanation and return only converted code in a formatted code block:\n"
     query = f"{keyphrase}{contents}"
     responses = []
 
