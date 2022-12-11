@@ -24,7 +24,7 @@ def convert_content(
         return output
 
     chatbot = Chatbot(config["chatgpt"], conversation_id=None)
-    keyphrase = f"Convert the following code written in {source} to {destination}, no explanation, only code:\n"
+    keyphrase = f"Convert the following code written in {source} to {destination} without any explanation and return only converted code in a code block:\n"
     query = f"{keyphrase}{contents}"
     responses = []
 
@@ -70,6 +70,42 @@ def save_content(
         file.write(output_contents)
 
 
+def process_file(
+    dry_run: bool,
+    config: Dict[str, str],
+    source: str,
+    destination: str,
+    input: str,
+    input_extension: str,
+    output: str,
+    output_extension: str,
+    file_path: str,
+) -> None:
+    file_name = os.path.basename(file_path)
+    _file_name_without_extension, file_ext = os.path.splitext(file_name)
+    if file_ext != input_extension:
+        return
+
+    # Do something with the file (e.g. read its contents)
+    with open(file_path, 'r') as f:
+        input_contents = f.read()
+        logger.info(f"Converting {file_path}...")
+        output_contents = convert_content(
+            dry_run=dry_run,
+            config=config,
+            source=source,
+            destination=destination,
+            contents=input_contents,
+        )
+        save_content(
+            dry_run=dry_run,
+            input_file_path=file_path,
+            output_contents=output_contents,
+            output=output,
+            output_extension=output_extension,
+        )
+
+
 def codeswap(
     *,
     dry_run: bool,
@@ -83,33 +119,37 @@ def codeswap(
 ) -> None:
     logger.info(f"Converting {source} in {input} to {destination} in {output}")
 
-    # Use os.walk to generate a list of all files in the folder and its subdirectories
-    for root, _dirs, files in os.walk(input):
-        # Iterate through the files and process them as needed
-        for file in files:
-            _file_name_without_extension, file_ext = os.path.splitext(file)
-            if file_ext != input_extension:
-                continue
-
-            file_path = os.path.join(root, file)
-            # Do something with the file (e.g. read its contents)
-            with open(file_path, 'r') as f:
-                input_contents = f.read()
-                logger.info(f"Converting {file_path}...")
-                output_contents = convert_content(
+    if os.path.isdir(input):
+        for root, _dirs, files in os.walk(input):
+            for file in files:
+                file_path = os.path.join(root, file)
+                process_file(
                     dry_run=dry_run,
                     config=config,
                     source=source,
                     destination=destination,
-                    contents=input_contents,
-                )
-                save_content(
-                    dry_run=dry_run,
-                    input_file_path=file_path,
-                    output_contents=output_contents,
+                    input=input,
+                    input_extension=input_extension,
                     output=output,
                     output_extension=output_extension,
+                    file_path=file_path,
                 )
+    elif os.path.isfile(input):
+        file_path = os.path.abspath(input)
+        process_file(
+            dry_run=dry_run,
+            config=config,
+            source=source,
+            destination=destination,
+            input=input,
+            input_extension=input_extension,
+            output=output,
+            output_extension=output_extension,
+            file_path=file_path,
+        )
+    else:
+        logger.error(f'{input} is not a valid filepath')
+        exit(84)
 
 
 @click.command()
