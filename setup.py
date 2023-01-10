@@ -23,7 +23,7 @@ with open(rel("src", "codeswap", "__init__.py")) as f:
         raise RuntimeError("Version marker not found.")
 
 
-dependencies = ["click", "revChatGPT==0.0.38.5", "pyyaml"]
+dependencies = ["click", "revChatGPT==0.1.1", "pyyaml"]
 
 extra_dependencies: Dict[str, List[str]] = {}
 

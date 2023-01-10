@@ -1,11 +1,10 @@
-import asyncio
 import logging
 import os
 from typing import Dict, Optional
 
 import click
 import yaml
-from revChatGPT.revChatGPT import AsyncChatbot as Chatbot
+from revChatGPT.ChatGPT import Chatbot
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ def convert_content(
     query = f"{keyphrase}{contents}"
     responses = []
 
-    response = asyncio.run(chatbot.get_chat_response(query, output="text"))
+    response = chatbot.ask(query)
     responses.append(response)
 
     for resp in responses:
@@ -87,7 +86,7 @@ def process_file(
         return
 
     # Do something with the file (e.g. read its contents)
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         input_contents = f.read()
         logger.info(f"Converting {file_path}...")
         output_contents = convert_content(
@@ -148,29 +147,29 @@ def codeswap(
             file_path=file_path,
         )
     else:
-        logger.error(f'{input} is not a valid filepath')
+        logger.error(f"{input} is not a valid filepath")
         exit(84)
 
 
 @click.command()
-@click.option('--dry-run', is_flag=True, help="Simulated execution")
-@click.option('-v', '--verbose', count=True, help="Verbosity level")
+@click.option("--dry-run", is_flag=True, help="Simulated execution")
+@click.option("-v", "--verbose", count=True, help="Verbosity level")
 @click.option(
-    '-c', '--config', required=True, default="config.yml", help="Configuration filepath"
+    "-c", "--config", required=True, default="config.yml", help="Configuration filepath"
 )
-@click.option('-s', '--source', required=True, help="Source language")
-@click.option('-d', '--destination', required=True, help="Destination language")
+@click.option("-s", "--source", required=True, help="Source language")
+@click.option("-d", "--destination", required=True, help="Destination language")
 @click.option(
-    '-i', '--input', required=True, help="Directory containing the source code"
+    "-i", "--input", required=True, help="Directory containing the source code"
 )
-@click.option('-ie', '--input-extension', help="Input extension")
+@click.option("-ie", "--input-extension", help="Input extension")
 @click.option(
-    '-o',
-    '--output',
+    "-o",
+    "--output",
     required=True,
     help="Output directory containing the destination code",
 )
-@click.option('-oe', '--output-extension', help="Output extension")
+@click.option("-oe", "--output-extension", help="Output extension")
 def cli(
     config: str,
     source: str,
@@ -193,8 +192,8 @@ def cli(
 
     logging.basicConfig(
         level=log_level,
-        format='%(asctime)s | %(levelname)s | %(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S%z',
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
     )
 
     with open(config, "r") as file:
